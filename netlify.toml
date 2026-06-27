@@ -1,0 +1,10 @@
+# Netlify configuration for LANDED
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Pretty endpoint: /api/fx -> the fx serverless function
+[[redirects]]
+  from = "/api/fx"
+  to = "/.netlify/functions/fx"
+  status = 200

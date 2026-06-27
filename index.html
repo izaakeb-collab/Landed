@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Landed — Japanese sealed import cost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3F4F7;
+    --card:#FFFFFF;
+    --ink:#15203B;
+    --ink-soft:#5C6685;
+    --line:#E3E6EE;
+    --line-strong:#CDD3E0;
+    --good:#0E8A5F;
+    --good-wash:#E6F4EE;
+    --bad:#C8392B;
+    --bad-wash:#FBEBE9;
+    --warn:#B45309;
+    --warn-wash:#FBF1E3;
+    --stamp:#C8392B;
+    --field:#F8F9FB;
+    --display:"Space Grotesk",system-ui,sans-serif;
+    --body:"IBM Plex Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--body);
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:84px;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+
+  /* Header */
+  header.top{
+    border-bottom:1px solid var(--line);
+    background:var(--card);
+  }
+  .top-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0}
+  .brand{display:flex;align-items:center;gap:12px}
+  .mark{
+    width:38px;height:38px;border:2px solid var(--stamp);border-radius:7px;
+    display:grid;place-items:center;color:var(--stamp);
+    font-family:var(--mono);font-weight:600;font-size:17px;
+    transform:rotate(-4deg);
+  }
+  .brand h1{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.01em;margin:0;line-height:1}
+  .brand p{margin:3px 0 0;font-size:12.5px;color:var(--ink-soft)}
+  .manifest{font-family:var(--mono);font-size:11px;color:var(--ink-soft);text-align:right;letter-spacing:.02em;text-transform:uppercase}
+  .manifest b{color:var(--ink);font-weight:600}
+
+  /* Verdict hero */
+  .hero{padding:30px 0 8px}
+  .verdict{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:26px;display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;
+    box-shadow:0 1px 0 rgba(21,32,59,.03), 0 18px 40px -28px rgba(21,32,59,.25);
+  }
+  .v-left .eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--ink-soft);margin-bottom:10px}
+  .v-num{font-family:var(--display);font-weight:700;font-size:54px;letter-spacing:-.02em;line-height:.95}
+  .v-sub{margin-top:10px;font-size:14.5px;color:var(--ink-soft);max-width:34ch}
+  .v-sub b{color:var(--ink);font-weight:600}
+
+  .stamp-box{display:flex;justify-content:center}
+  .stamp{
+    border:2.5px solid var(--stamp);color:var(--stamp);
+    border-radius:12px;padding:16px 20px;text-align:center;transform:rotate(-3.5deg);
+    min-width:210px;position:relative;background:
+      repeating-linear-gradient(135deg, transparent 0 7px, rgba(200,57,43,.04) 7px 8px);
+  }
+  .stamp.good{border-color:var(--good);color:var(--good);background:
+      repeating-linear-gradient(135deg, transparent 0 7px, rgba(14,138,95,.05) 7px 8px);}
+  .stamp .s-label{font-family:var(--mono);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:18px;line-height:1.1}
+  .stamp .s-amt{font-family:var(--display);font-weight:700;font-size:26px;margin-top:6px;letter-spacing:-.01em}
+  .stamp .s-meta{font-family:var(--mono);font-size:11px;margin-top:6px;opacity:.85;text-transform:uppercase;letter-spacing:.04em}
+  .stamp .ring{position:absolute;inset:5px;border:1px dashed currentColor;border-radius:8px;opacity:.4;pointer-events:none}
+
+  /* Layout grid */
+  .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;padding:20px 0 40px;align-items:start}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .panel h2{font-family:var(--display);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);margin:0 0 4px}
+  .panel .hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+
+  .group{margin-bottom:22px}
+  .group:last-child{margin-bottom:0}
+  .group-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);
+    display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .group-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .field{margin-bottom:13px}
+  .field:last-child{margin-bottom:0}
+  .field > label{display:block;font-size:13px;font-weight:500;margin-bottom:5px}
+  .field .desc{font-size:11.5px;color:var(--ink-soft);margin-top:5px;line-height:1.4}
+  .ctrl{display:flex;align-items:stretch;border:1px solid var(--line-strong);border-radius:9px;overflow:hidden;background:var(--field);transition:border-color .15s,box-shadow .15s}
+  .ctrl:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px rgba(21,32,59,.08)}
+  .ctrl .pre{display:grid;place-items:center;padding:0 11px;font-family:var(--mono);font-size:13px;color:var(--ink-soft);background:#EEF0F5;border-right:1px solid var(--line)}
+  .ctrl input{flex:1;border:0;background:transparent;padding:11px 12px;font-family:var(--mono);font-size:14px;color:var(--ink);width:100%;outline:none}
+  .ctrl input::-webkit-outer-spin-button,.ctrl input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .ctrl .post{display:grid;place-items:center;padding:0 11px;font-family:var(--mono);font-size:12px;color:var(--ink-soft);background:#EEF0F5;border-left:1px solid var(--line)}
+
+  /* segmented route */
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#EEF0F5;border-radius:10px;padding:5px}
+  .seg button{
+    font-family:var(--body);font-size:13px;font-weight:600;border:0;background:transparent;color:var(--ink-soft);
+    padding:9px 8px;border-radius:7px;cursor:pointer;transition:.15s}
+  .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(21,32,59,.12)}
+  .route-extra{margin-top:13px;display:none}
+  .route-extra.show{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+
+  /* Breakdown / manifest */
+  .stack{height:12px;border-radius:6px;overflow:hidden;display:flex;margin:2px 0 18px;border:1px solid var(--line)}
+  .stack span{height:100%}
+  .seg-product{background:#15203B}
+  .seg-ship{background:#3B7BD4}
+  .seg-duty{background:var(--stamp)}
+  .seg-fees{background:#9AA3B8}
+  .seg-proxy{background:#0E8A5F}
+
+  .rows{font-family:var(--mono);font-size:13px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .row .k{display:flex;align-items:center;gap:9px;color:var(--ink-soft)}
+  .row .dot{width:9px;height:9px;border-radius:2px;flex:none}
+  .row .v{font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+  .row.total{border-bottom:0;border-top:2px solid var(--ink);margin-top:6px;padding-top:13px}
+  .row.total .k{color:var(--ink);font-weight:600;font-family:var(--display);font-size:14px}
+  .row.total .v{font-size:18px;font-weight:600}
+  .row.sub .k,.row.sub .v{color:var(--ink-soft);font-size:12px}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .cmp{border:1px solid var(--line);border-radius:11px;padding:13px}
+  .cmp .lab{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+  .cmp .big{font-family:var(--display);font-weight:700;font-size:24px;margin-top:5px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .cmp.win{background:var(--good-wash);border-color:#BFE3D2}
+  .cmp.win .lab{color:var(--good)}
+
+  /* consolidation callout */
+  .callout{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;background:var(--field)}
+  .callout .ic{font-family:var(--mono);font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:7px;width:30px;height:30px;display:grid;place-items:center;flex:none;font-size:14px}
+  .callout p{margin:0;font-size:13px;color:var(--ink)}
+  .callout p b{font-weight:600}
+  .callout.tip{background:var(--good-wash);border-color:#BFE3D2}
+  .callout.tip .ic{color:var(--good);border-color:#BFE3D2}
+
+  /* footer */
+  .foot{border-top:1px solid var(--line);padding:22px 0 30px;color:var(--ink-soft);font-size:12px}
+  .foot .warn{display:flex;gap:10px;align-items:flex-start;background:var(--warn-wash);border:1px solid #EFD9B6;border-radius:11px;padding:12px 14px;margin-bottom:14px;color:#7A4A10}
+  .foot .warn b{color:#7A4A10}
+  .foot .warn .ic{font-family:var(--mono);font-weight:700;flex:none}
+  .foot p{margin:6px 0}
+
+  /* sticky mobile result */
+  .dock{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line-strong);
+    box-shadow:0 -8px 24px -18px rgba(21,32,59,.4);padding:11px 18px;display:none;z-index:30}
+  .dock-inner{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .dock .pb{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+  .dock .pn{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;margin-top:2px;font-variant-numeric:tabular-nums}
+  .pill{font-family:var(--mono);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:7px 12px;border-radius:999px}
+  .pill.good{background:var(--good-wash);color:var(--good)}
+  .pill.bad{background:var(--bad-wash);color:var(--bad)}
+
+  @media (max-width:860px){
+    .verdict{grid-template-columns:1fr;gap:20px}
+    .stamp-box{justify-content:flex-start}
+    .grid{grid-template-columns:1fr}
+    .manifest{display:none}
+    .v-num{font-size:46px}
+    .dock{display:block}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .mark,.stamp{transform:none}
+  }
+
+  /* share button */
+  .share-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:500;
+    text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--field);border:1px solid var(--line-strong);
+    border-radius:9px;padding:9px 14px;cursor:pointer;transition:.15s}
+  .share-btn::before{content:"\2197";font-weight:700}
+  .share-btn:hover{border-color:var(--ink);background:#fff}
+  .share-btn.ok{color:var(--good);border-color:#BFE3D2;background:var(--good-wash)}
+  .share-btn.ok::before{content:"\2713"}
+
+  /* live fx indicator */
+  .fxlive{font-size:11.5px;color:var(--good);margin-top:7px;display:flex;align-items:center;gap:7px;font-family:var(--mono);line-height:1.4}
+  .fxlive[hidden]{display:none}
+  .fxlive button{font:inherit;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--ink-soft);padding:0 0 1px;cursor:pointer}
+  .fxlive button:hover{border-color:var(--ink)}
+  .fxlive .dotlive{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(14,138,95,.45)}70%{box-shadow:0 0 0 6px rgba(14,138,95,0)}100%{box-shadow:0 0 0 0 rgba(14,138,95,0)}}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <div class="mark">¥$</div>
+        <div>
+          <h1>LANDED</h1>
+          <p>Japanese sealed → true cost to your door</p>
+        </div>
+      </div>
+      <div class="manifest">
+        Manifest · JP&nbsp;→&nbsp;US<br><b>rev. 2026.06</b>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="verdict">
+        <div class="v-left">
+          <div class="eyebrow">Your real cost per box, landed</div>
+          <div class="v-num" id="perBox">$—</div>
+          <div class="v-sub" id="vSub">Enter a box price to compare importing against buying domestic.</div>
+          <button class="share-btn" id="shareBtn" type="button"><span>Copy shareable link</span></button>
+        </div>
+        <div class="stamp-box">
+          <div class="stamp" id="stamp">
+            <div class="ring"></div>
+            <div class="s-label" id="sLabel">AWAITING INPUT</div>
+            <div class="s-amt" id="sAmt">—</div>
+            <div class="s-meta" id="sMeta">vs. domestic</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <main class="grid">
+      <!-- INPUTS -->
+      <section class="panel">
+        <h2>The shipment</h2>
+        <p class="hint">All defaults reflect mid-2026 norms. Change anything — the verdict updates live.</p>
+
+        <div class="group">
+          <div class="group-label">Product</div>
+          <div class="field">
+            <label for="priceJPY">Price per box (Japanese yen)</label>
+            <div class="ctrl"><span class="pre">¥</span><input id="priceJPY" type="number" min="0" step="100" value="9000"></div>
+            <div class="desc">Secondary-market boxes typically run ¥7,000–15,000 depending on set.</div>
+          </div>
+          <div class="field">
+            <label for="qty">How many boxes (one shipment)</label>
+            <div class="ctrl"><input id="qty" type="number" min="1" step="1" value="1"><span class="post">boxes</span></div>
+            <div class="desc">Consolidating boxes into one parcel is where the savings come from.</div>
+          </div>
+          <div class="field">
+            <label for="fx">Exchange rate</label>
+            <div class="ctrl"><span class="pre">¥/$</span><input id="fx" type="number" min="1" step="0.5" value="150"><span class="post">per USD</span></div>
+            <div class="desc">Auto-filled with the live rate; override if your seller or card is quoted differently.</div>
+            <div class="fxlive" id="fxLive" hidden></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-label">Sourcing route</div>
+          <div class="seg" role="tablist">
+            <button id="rExport" class="on" type="button">Export shop</button>
+            <button id="rProxy" type="button">Proxy service</button>
+          </div>
+          <div class="desc" style="margin-top:8px" id="routeDesc">Export shops ship in volume and inspect — usually the lowest landed cost, with no per-item proxy fee.</div>
+          <div class="route-extra" id="proxyExtra">
+            <div class="field">
+              <label for="proxyFeeJPY">Proxy fee (per box)</label>
+              <div class="ctrl"><span class="pre">¥</span><input id="proxyFeeJPY" type="number" min="0" step="50" value="500"></div>
+              <div class="desc">ZenMarket is a flat ¥500/item; Buyee runs higher.</div>
+            </div>
+            <div class="field">
+              <label for="jpShipJPY">Domestic JP shipping (per shipment)</label>
+              <div class="ctrl"><span class="pre">¥</span><input id="jpShipJPY" type="number" min="0" step="100" value="800"></div>
+              <div class="desc">Seller → proxy warehouse for consolidation.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-label">Shipping &amp; import</div>
+          <div class="field">
+            <label for="shipBase">International shipping — first box</label>
+            <div class="ctrl"><span class="pre">$</span><input id="shipBase" type="number" min="0" step="1" value="15"></div>
+            <div class="desc">Courier (DHL/FedEx). Japan Post to the US is suspended.</div>
+          </div>
+          <div class="field">
+            <label for="shipPer">International shipping — each extra box</label>
+            <div class="ctrl"><span class="pre">$</span><input id="shipPer" type="number" min="0" step="1" value="8"></div>
+          </div>
+          <div class="field">
+            <label for="duty">Import duty</label>
+            <div class="ctrl"><input id="duty" type="number" min="0" step="0.5" value="10"><span class="post">%</span></div>
+            <div class="desc">Default 10% (Section 122, current for Japan). Scheduled to expire ~July 24, 2026 — confirm before ordering.</div>
+          </div>
+          <div class="field">
+            <label for="proc">Customs / carrier processing (per shipment)</label>
+            <div class="ctrl"><span class="pre">$</span><input id="proc" type="number" min="0" step="1" value="10"></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-label">Compare against</div>
+          <div class="field">
+            <label for="usPrice">Same box, bought in the US (per box)</label>
+            <div class="ctrl"><span class="pre">$</span><input id="usPrice" type="number" min="0" step="1" value="90"></div>
+            <div class="desc">What a US-based importer or shop charges for the identical box.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section class="panel">
+        <h2>Landed cost manifest</h2>
+        <p class="hint" id="manHint">Itemized for your whole order.</p>
+
+        <div class="stack" id="stack" aria-hidden="true"></div>
+
+        <div class="rows" id="rows"><!-- injected --></div>
+
+        <div class="compare">
+          <div class="cmp" id="cmpImport">
+            <div class="lab">Import · per box</div>
+            <div class="big" id="cImport">$—</div>
+          </div>
+          <div class="cmp" id="cmpDom">
+            <div class="lab">Domestic · per box</div>
+            <div class="big" id="cDom">$—</div>
+          </div>
+        </div>
+
+        <div class="callout" id="consol">
+          <div class="ic">⤢</div>
+          <p id="consolTxt">—</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="warn">
+        <span class="ic">!</span>
+        <div><b>Tariffs are moving.</b> The 10% rate is a temporary Section 122 surcharge set to expire around July 24, 2026; it could lapse (cheaper) or be replaced by something higher. Always check the live duty rate and your carrier's brokerage fee at the moment you order.</div>
+      </div>
+      <p><b>Estimate only — not customs, tax, or legal advice.</b> Duty is calculated on declared product value; actual customs valuation, fees, and rates vary by carrier, declared value, and shipment. Always declare the true value of your goods.</p>
+      <p>LANDED · a planning tool for importing Japanese sealed trading-card product into the US.</p>
+    </footer>
+  </div>
+
+  <!-- sticky mobile result -->
+  <div class="dock" id="dock">
+    <div class="dock-inner">
+      <div>
+        <div class="pb">Import · per box</div>
+        <div class="pn" id="dockNum">$—</div>
+      </div>
+      <div class="pill" id="dockPill">—</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var route = 'export';
+  var $ = function(id){return document.getElementById(id);};
+  var num = function(id){var v=parseFloat($(id).value);return isNaN(v)?0:v;};
+
+  var usd = function(n){
+    if(!isFinite(n)) n=0;
+    return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  };
+  var usd0 = function(n){return '$'+Math.round(n).toLocaleString('en-US');};
+
+  // route toggle
+  function setRoute(r){
+    route=r;
+    $('rExport').classList.toggle('on', r==='export');
+    $('rProxy').classList.toggle('on', r==='proxy');
+    $('proxyExtra').classList.toggle('show', r==='proxy');
+    $('routeDesc').textContent = r==='export'
+      ? 'Export shops ship in volume and inspect — usually the lowest landed cost, with no per-item proxy fee.'
+      : 'Proxy services unlock Mercari & Yahoo Auctions Japan deals, but add a fee per item plus domestic shipping.';
+    compute();
+  }
+  $('rExport').addEventListener('click',function(){setRoute('export');});
+  $('rProxy').addEventListener('click',function(){setRoute('proxy');});
+
+  function compute(){
+    var fx = num('fx') || 1;
+    var qty = Math.max(1, Math.floor(num('qty')||1));
+    var priceJPY = num('priceJPY');
+    var dutyPct = num('duty');
+    var usPrice = num('usPrice');
+
+    var productPerBox = priceJPY / fx;
+    var productTotal = productPerBox * qty;
+
+    var proxyTotal = 0, jpShipTotal = 0, proxyPerBox = 0;
+    if(route==='proxy'){
+      proxyPerBox = num('proxyFeeJPY')/fx;
+      proxyTotal = proxyPerBox * qty;
+      jpShipTotal = num('jpShipJPY')/fx;
+    }
+
+    var shipBase = num('shipBase');
+    var shipPer = num('shipPer');
+    var intlShip = shipBase + shipPer * Math.max(0, qty-1);
+
+    var duty = (dutyPct/100) * productTotal;
+    var proc = num('proc');
+
+    var total = productTotal + proxyTotal + jpShipTotal + intlShip + duty + proc;
+    var perBox = total / qty;
+
+    var domTotal = usPrice * qty;
+    var savePerBox = usPrice - perBox;
+    var saveTotal = domTotal - total;
+    var savePct = usPrice>0 ? (savePerBox/usPrice*100) : 0;
+
+    /* ---- verdict ---- */
+    var near = Math.abs(savePerBox) < 1;
+    var win = savePerBox > 0 && !near;
+    $('perBox').textContent = usd(perBox);
+
+    var stamp=$('stamp'), sLabel=$('sLabel'), sAmt=$('sAmt'), sMeta=$('sMeta');
+    var pill=$('dockPill');
+    if(priceJPY<=0){
+      $('vSub').innerHTML='Enter a box price to compare importing against buying domestic.';
+      sLabel.textContent='AWAITING INPUT'; sAmt.textContent='—'; sMeta.textContent='vs. domestic';
+      stamp.classList.remove('good');
+      pill.className='pill'; pill.textContent='—';
+    } else if(near){
+      $('vSub').innerHTML='Importing and buying domestic land within <b>a dollar a box</b>. Buy whichever is more convenient — or add boxes to tip it.';
+      stamp.classList.remove('good');
+      sLabel.textContent='ABOUT EVEN'; sAmt.textContent='≈ '+usd(Math.abs(savePerBox)); sMeta.textContent='per box';
+      pill.className='pill'; pill.textContent='≈ even';
+    } else if(win){
+      $('vSub').innerHTML='Importing beats domestic by <b>'+usd(savePerBox)+' a box</b> ('+savePct.toFixed(0)+'%). That\u2019s <b>'+usd(saveTotal)+'</b> across '+qty+' box'+(qty>1?'es':'')+'.';
+      stamp.classList.add('good');
+      sLabel.textContent='CLEARS CHEAPER'; sAmt.textContent='\u2212'+usd(savePerBox); sMeta.textContent='per box vs. domestic';
+      pill.className='pill good'; pill.textContent='save '+usd0(savePerBox)+'/box';
+    } else {
+      $('vSub').innerHTML='Importing costs <b>'+usd(Math.abs(savePerBox))+' more a box</b> than buying domestic here. Add boxes or wait for a better rate.';
+      stamp.classList.remove('good');
+      sLabel.textContent='BUY DOMESTIC'; sAmt.textContent='+'+usd(Math.abs(savePerBox)); sMeta.textContent='per box penalty';
+      pill.className='pill bad'; pill.textContent='+'+usd0(Math.abs(savePerBox))+'/box';
+    }
+
+    /* ---- manifest rows ---- */
+    $('manHint').textContent = 'Itemized for '+qty+' box'+(qty>1?'es':'')+'.';
+    var rows='';
+    function row(dot,k,v,sub){
+      return '<div class="row'+(sub?' sub':'')+'"><div class="k">'+(dot?'<span class="dot" style="background:'+dot+'"></span>':'')+k+'</div><div class="v">'+v+'</div></div>';
+    }
+    rows+=row('#15203B','Product ('+qty+'×)', usd(productTotal));
+    if(route==='proxy'){
+      rows+=row('#0E8A5F','Proxy fees', usd(proxyTotal));
+      rows+=row('#0E8A5F','Domestic JP shipping', usd(jpShipTotal));
+    }
+    rows+=row('#3B7BD4','International shipping', usd(intlShip));
+    rows+=row('#C8392B','Import duty ('+dutyPct.toFixed(dutyPct%1?1:0)+'%)', usd(duty));
+    rows+=row('#9AA3B8','Customs / processing', usd(proc));
+    rows+=row('', '<span style="font-weight:600;color:var(--ink)">Total landed</span>', usd(total));
+    // make total a proper total row
+    rows = rows.replace(/<div class="row"><div class="k"><span style="font-weight:600;color:var\(--ink\)">Total landed<\/span><\/div>/, '<div class="row total"><div class="k">Total landed</div>');
+    rows+=row('', 'Per box', usd(perBox)).replace('class="row"','class="row sub"');
+    $('rows').innerHTML=rows;
+
+    /* ---- stacked bar ---- */
+    var parts=[
+      {c:'seg-product',v:productTotal},
+      {c:'seg-proxy',v:proxyTotal+jpShipTotal},
+      {c:'seg-ship',v:intlShip},
+      {c:'seg-duty',v:duty},
+      {c:'seg-fees',v:proc}
+    ];
+    var stackHTML='';
+    parts.forEach(function(p){
+      if(p.v>0 && total>0){ stackHTML+='<span class="'+p.c+'" style="width:'+(p.v/total*100)+'%"></span>'; }
+    });
+    $('stack').innerHTML=stackHTML;
+
+    /* ---- compare tiles ---- */
+    $('cImport').textContent=usd(perBox);
+    $('cDom').textContent=usd(usPrice);
+    $('cmpImport').classList.toggle('win', win);
+    $('cmpDom').classList.toggle('win', !win && !near && usPrice>0);
+
+    /* ---- consolidation / break-even ---- */
+    var fixedCosts = shipBase + proc + (route==='proxy'? jpShipTotal : 0); // don't scale per box
+    var variablePerBox = productPerBox*(1+dutyPct/100) + shipPer + (route==='proxy'? proxyPerBox : 0);
+    var consol=$('consol'), ctxt=$('consolTxt');
+    consol.classList.remove('tip');
+    if(priceJPY<=0 || usPrice<=0){
+      ctxt.textContent='Add a box price and a domestic price to see your break-even quantity.';
+    } else if(variablePerBox >= usPrice){
+      ctxt.innerHTML='Even at high volume, the per-box cost stays above domestic — the box price itself is too steep to import profitably at this rate. Look for cheaper boxes or a lower duty/exchange rate.';
+    } else {
+      var beQ = Math.ceil(fixedCosts / (usPrice - variablePerBox));
+      if(beQ<1) beQ=1;
+      if(qty>=beQ){
+        consol.classList.add('tip');
+        ctxt.innerHTML='You\u2019re past break-even — importing wins at <b>'+beQ+'+ box'+(beQ>1?'es':'')+'</b> per shipment. Each box you add keeps nudging the per-box cost down.';
+      } else {
+        var atBe = variablePerBox + fixedCosts/beQ;
+        ctxt.innerHTML='Single boxes barely move the needle. Ship <b>'+beQ+' box'+(beQ>1?'es':'')+' together</b> and your per-box cost drops to about <b>'+usd(atBe)+'</b> — under the '+usd(usPrice)+' domestic price.';
+      }
+    }
+
+    /* ---- mobile dock ---- */
+    $('dockNum').textContent=usd(perBox);
+  }
+
+  // wire all inputs
+  ['priceJPY','qty','fx','proxyFeeJPY','jpShipJPY','shipBase','shipPer','duty','proc','usPrice']
+    .forEach(function(id){ $(id).addEventListener('input', compute); });
+
+  /* ---------- shareable URL ---------- */
+  var PARAMS = {p:'priceJPY',q:'qty',fx:'fx',pf:'proxyFeeJPY',js:'jpShipJPY',sb:'shipBase',sp:'shipPer',d:'duty',pc:'proc',us:'usPrice'};
+  var userSetFx = false;
+
+  function applyQuery(){
+    var sp = new URLSearchParams(location.search);
+    if(!Array.from(sp.keys()).length) return;
+    Object.keys(PARAMS).forEach(function(k){
+      if(sp.has(k)){ var el=$(PARAMS[k]); if(el){ el.value = sp.get(k); if(k==='fx') userSetFx=true; } }
+    });
+    var r = sp.get('r');
+    if(r==='proxy' || r==='export'){ setRoute(r); } // setRoute also recomputes
+  }
+
+  function buildShareUrl(){
+    var sp = new URLSearchParams();
+    Object.keys(PARAMS).forEach(function(k){
+      var name = PARAMS[k];
+      if((name==='proxyFeeJPY' || name==='jpShipJPY') && route!=='proxy') return; // skip proxy fields on export route
+      var el = $(name); if(el) sp.set(k, el.value);
+    });
+    sp.set('r', route);
+    return location.origin + location.pathname + '?' + sp.toString();
+  }
+
+  var shareBtn = $('shareBtn');
+  if(shareBtn){
+    shareBtn.addEventListener('click', function(){
+      var url = buildShareUrl();
+      var span = shareBtn.querySelector('span');
+      var flash = function(){ var t=span.textContent; span.textContent='Copied to clipboard'; shareBtn.classList.add('ok');
+        setTimeout(function(){ span.textContent=t; shareBtn.classList.remove('ok'); }, 1800); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(flash, function(){ window.prompt('Copy this link:', url); });
+      } else { window.prompt('Copy this link:', url); }
+    });
+  }
+
+  /* ---------- live exchange rate ---------- */
+  function fmtRate(n){ return (Math.round(n*100)/100).toFixed(2); }
+  function applyLive(rate){ $('fx').value = fmtRate(rate); compute(); }
+
+  function fetchLiveFx(){
+    var box = $('fxLive');
+    fetch('/api/fx').then(function(r){ return r.ok ? r.json() : Promise.reject(); }).then(function(d){
+      if(!d || !d.rate) throw 0;
+      var rate = d.rate;
+      var when = d.date ? (' \u00b7 ' + String(d.date).slice(0,10)) : '';
+      var src = d.source ? (' \u00b7 ' + d.source) : '';
+      if(!userSetFx){
+        applyLive(rate);
+        box.innerHTML = '<span class="dotlive"></span>Live rate \u00b7 \u00a5' + fmtRate(rate) + '/$' + src + when;
+      } else {
+        box.innerHTML = '<span class="dotlive"></span>Live rate is \u00a5' + fmtRate(rate) + '/$ \u2014 <button type="button" id="useLive">use it</button>';
+        var ul = $('useLive');
+        if(ul) ul.addEventListener('click', function(){
+          userSetFx = false; applyLive(rate);
+          box.innerHTML = '<span class="dotlive"></span>Live rate \u00b7 \u00a5' + fmtRate(rate) + '/$' + src + when;
+        });
+      }
+      box.hidden = false;
+    }).catch(function(){
+      box.innerHTML = 'Live rate activates once deployed to Netlify \u2014 using the value above for now.';
+      box.hidden = false;
+    });
+  }
+
+  applyQuery();
+  compute();
+  fetchLiveFx();
+})();
+</script>
+</body>
+</html>
