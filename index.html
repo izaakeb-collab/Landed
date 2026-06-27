@@ -196,6 +196,14 @@
   .fxlive button:hover{border-color:var(--ink)}
   .fxlive .dotlive{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(14,138,95,.45)}70%{box-shadow:0 0 0 6px rgba(14,138,95,0)}100%{box-shadow:0 0 0 0 rgba(14,138,95,0)}}
+
+  /* set picker */
+  .ctrl.select{position:relative}
+  .ctrl select{flex:1;border:0;background:transparent;padding:11px 36px 11px 12px;font-family:var(--body);font-size:14px;
+    color:var(--ink);width:100%;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer}
+  .ctrl.select::after{content:"";position:absolute;right:14px;top:50%;width:8px;height:8px;
+    border-right:2px solid var(--ink-soft);border-bottom:2px solid var(--ink-soft);transform:translateY(-65%) rotate(45deg);pointer-events:none}
+  .opt{color:var(--ink-soft);font-weight:400;text-transform:none;letter-spacing:0}
 </style>
 </head>
 <body>
@@ -242,6 +250,11 @@
 
         <div class="group">
           <div class="group-label">Product</div>
+          <div class="field">
+            <label for="setPick">Quick-pick a set <span class="opt">(optional)</span></label>
+            <div class="ctrl select"><select id="setPick"><option value="">Enter price manually…</option></select></div>
+            <div class="desc" id="setNote">Pick a Japanese set to auto-fill a ballpark price, then fine-tune it to the listing you found.</div>
+          </div>
           <div class="field">
             <label for="priceJPY">Price per box (Japanese yen)</label>
             <div class="ctrl"><span class="pre">¥</span><input id="priceJPY" type="number" min="0" step="100" value="9000"></div>
@@ -584,6 +597,58 @@
     });
   }
 
+  /* ---------- quick-pick set prices (loaded live from /api/prices) ----------
+     The price list now lives server-side in the `prices` function, so it can be
+     updated in one place (or swapped for a real market feed) without redeploying
+     the front-end. FALLBACK_SETS is only used if that endpoint is unreachable
+     (e.g. opening the file locally). */
+  var FALLBACK_SETS = [
+    { g: 'Popular sets', items: [
+      { n: 'Terastal Festival ex (sv8a)', y: 10000 },
+      { n: 'Shiny Treasure ex (sv4a)', y: 12000 },
+      { n: 'Pok\u00e9mon Card 151 (sv2a)', y: 15000 },
+      { n: 'Heat Wave Arena (sv9a)', y: 9000 },
+      { n: 'The Glory of Team Rocket (sv10)', y: 11000 },
+      { n: 'Ninja Spinner \u2014 Mega Greninja (M4)', y: 9000 }
+    ]}
+  ];
+  var setSel = $('setPick');
+
+  function populateSets(groups){
+    while(setSel.options.length > 1){ setSel.remove(1); }   // keep the "manual" option
+    groups.forEach(function(grp){
+      var og = document.createElement('optgroup'); og.label = grp.g;
+      grp.items.forEach(function(it){
+        var o = document.createElement('option');
+        o.value = it.y;
+        o.textContent = it.n + '  \u00b7  \u2248\u00a5' + Number(it.y).toLocaleString('en-US');
+        og.appendChild(o);
+      });
+      setSel.appendChild(og);
+    });
+  }
+
+  setSel.addEventListener('change', function(){
+    if(!setSel.value) return;
+    $('priceJPY').value = setSel.value;
+    var name = setSel.options[setSel.selectedIndex].textContent.split('  \u00b7  ')[0];
+    $('setNote').innerHTML = 'Filled from <b>' + name + '</b> \u2014 a ballpark price. Adjust to your exact listing.';
+    compute();
+  });
+
+  function loadSets(){
+    fetch('/api/prices').then(function(r){ return r.ok ? r.json() : Promise.reject(); }).then(function(d){
+      if(d && d.sets && d.sets.length){
+        populateSets(d.sets);
+        if(d.updated){ $('setNote').textContent = 'Pick a set to auto-fill a price \u2014 ballpark figures (updated ' + d.updated + '). Adjust to your listing.'; }
+      } else { populateSets(FALLBACK_SETS); }
+    }).catch(function(){ populateSets(FALLBACK_SETS); });
+  }
+
+  // typing a manual price clears the dropdown selection
+  $('priceJPY').addEventListener('input', function(){ if(setSel) setSel.value = ''; });
+
+  loadSets();
   applyQuery();
   compute();
   fetchLiveFx();
