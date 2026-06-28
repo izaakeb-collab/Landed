@@ -194,6 +194,9 @@
   .fxlive[hidden]{display:none}
   .fxlive button{font:inherit;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--ink-soft);padding:0 0 1px;cursor:pointer}
   .fxlive button:hover{border-color:var(--ink)}
+  .linkbtn{font:inherit;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--ink-soft);padding:0 0 1px;cursor:pointer}
+  .linkbtn:hover{border-color:var(--ink)}
+  .linkbtn[disabled]{opacity:.5;cursor:default;border-color:transparent}
   .fxlive .dotlive{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(14,138,95,.45)}70%{box-shadow:0 0 0 6px rgba(14,138,95,0)}100%{box-shadow:0 0 0 0 rgba(14,138,95,0)}}
 
@@ -321,7 +324,8 @@
           <div class="field">
             <label for="usPrice">Same box, bought in the US (per box)</label>
             <div class="ctrl"><span class="pre">$</span><input id="usPrice" type="number" min="0" step="1" value="90"></div>
-            <div class="desc">What a US-based importer or shop charges for the identical box.</div>
+            <div class="desc">What a US-based importer or shop charges for the identical box. <button type="button" id="ebayBtn" class="linkbtn">Check eBay &rsaquo;</button></div>
+            <div class="desc" id="ebayNote" style="margin-top:4px"></div>
           </div>
         </div>
       </section>
@@ -633,6 +637,7 @@
     $('priceJPY').value = setSel.value;
     var name = setSel.options[setSel.selectedIndex].textContent.split('  \u00b7  ')[0];
     $('setNote').innerHTML = 'Filled from <b>' + name + '</b> \u2014 a ballpark price. Adjust to your exact listing.';
+    var en = $('ebayNote'); if(en) en.textContent = '';
     compute();
   });
 
@@ -647,6 +652,43 @@
 
   // typing a manual price clears the dropdown selection
   $('priceJPY').addEventListener('input', function(){ if(setSel) setSel.value = ''; });
+
+  /* ---------- live eBay comparison price ---------- */
+  var ebayBtn = $('ebayBtn'), ebayNote = $('ebayNote');
+
+  function selectedSetName(){
+    if(setSel && setSel.value && setSel.selectedIndex > 0){
+      return setSel.options[setSel.selectedIndex].textContent.split('  \u00b7  ')[0];
+    }
+    return '';
+  }
+
+  function ebayLookup(){
+    var name = selectedSetName();
+    if(!name){ ebayNote.textContent = 'Pick a set above first \u2014 then I can pull its eBay price.'; return; }
+    var label = ebayBtn.textContent;
+    ebayBtn.disabled = true; ebayBtn.textContent = 'Checking eBay\u2026'; ebayNote.textContent = '';
+    fetch('/api/ebay?q=' + encodeURIComponent(name))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.ok && d.median){
+          $('usPrice').value = Math.round(d.median);
+          var rng = (d.low && d.high) ? ' (range $' + d.low.toLocaleString('en-US') + '\u2013$' + d.high.toLocaleString('en-US') + ')' : '';
+          ebayNote.innerHTML = 'Median of <b>' + d.count + '</b> eBay listings: <b>$' + Math.round(d.median).toLocaleString('en-US') + '</b>' + rng + '. These are <i>asking</i> prices \u2014 sanity-check before relying on it.';
+          compute();
+        } else if(d && d.reason === 'not_configured'){
+          ebayNote.textContent = 'The eBay feed isn\u2019t switched on yet \u2014 add your free eBay API keys in Netlify to enable it.';
+        } else if(d && d.reason === 'no_results'){
+          ebayNote.textContent = 'No sealed-box listings found for that set right now \u2014 enter the price manually.';
+        } else {
+          ebayNote.textContent = 'Couldn\u2019t reach eBay just now (' + ((d && d.reason) || 'error') + ') \u2014 enter the price manually.';
+        }
+      })
+      .catch(function(){ ebayNote.textContent = 'Couldn\u2019t reach the eBay feed \u2014 enter the price manually.'; })
+      .then(function(){ ebayBtn.disabled = false; ebayBtn.textContent = label; });
+  }
+
+  if(ebayBtn){ ebayBtn.addEventListener('click', ebayLookup); }
 
   loadSets();
   applyQuery();

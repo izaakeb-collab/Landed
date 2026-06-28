@@ -13,3 +13,8 @@
   from = "/api/prices"
   to = "/.netlify/functions/prices"
   status = 200
+
+[[redirects]]
+  from = "/api/ebay"
+  to = "/.netlify/functions/ebay"
+  status = 200
