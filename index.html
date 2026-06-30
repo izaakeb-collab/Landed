@@ -67,6 +67,10 @@
   .v-left .eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--ink-soft);margin-bottom:10px}
   .v-num{font-family:var(--display);font-weight:700;font-size:54px;letter-spacing:-.02em;line-height:.95}
   .v-sub{margin-top:10px;font-size:14.5px;color:var(--ink-soft);max-width:34ch}
+  .explain{padding:0 0 6px;max-width:680px}
+  .explain .eg{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--ink-soft);margin-bottom:6px}
+  .explain p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-soft)}
+  .explain b{color:var(--ink);font-weight:600}
   .v-sub b{color:var(--ink);font-weight:600}
 
   .stamp-box{display:flex;justify-content:center}
@@ -245,6 +249,11 @@
       </div>
     </section>
 
+    <section class="explain">
+      <div class="eg">What this is</div>
+      <p>Enter a sealed box's price in Japan and LANDED works out your true cost to the door — exchange rate, proxy or export-shop fees, Japanese and international shipping, the import tariff, and customs — then tells you whether importing actually beats buying the same box in the US, and how many boxes you'd need to ship together to break even. <b>Free, no signup, no ads.</b></p>
+    </section>
+
     <main class="grid">
       <!-- INPUTS -->
       <section class="panel">
@@ -360,7 +369,7 @@
     <footer class="foot">
       <div class="warn">
         <span class="ic">!</span>
-        <div><b>Tariffs are moving.</b> The 10% rate is a temporary Section 122 surcharge set to expire around July 24, 2026; it could lapse (cheaper) or be replaced by something higher. Always check the live duty rate and your carrier's brokerage fee at the moment you order.</div>
+        <div id="tariffWarn"><b>Tariffs are moving.</b> The 10% rate is a temporary Section 122 surcharge set to expire around July 24, 2026; it could lapse (cheaper) or be replaced by something higher. Always check the live duty rate and your carrier's brokerage fee at the moment you order.</div>
       </div>
       <p><b>Estimate only — not customs, tax, or legal advice.</b> Duty is calculated on declared product value; actual customs valuation, fees, and rates vary by carrier, declared value, and shipment. Always declare the true value of your goods.</p>
       <p>LANDED · a planning tool for importing Japanese sealed trading-card product into the US.</p>
@@ -689,6 +698,18 @@
   }
 
   if(ebayBtn){ ebayBtn.addEventListener('click', ebayLookup); }
+
+  /* ---------- date-aware tariff note ---------- */
+  (function tariffNote(){
+    var el = $('tariffWarn'); if(!el) return;
+    var expiry = new Date('2026-07-24T00:00:00');
+    var days = Math.ceil((expiry - new Date()) / 86400000);
+    if(days > 0){
+      el.innerHTML = '<b>Tariffs are moving.</b> The duty defaults to 10% \u2014 a temporary Section 122 surcharge set to expire around <b>July 24, 2026</b> (about ' + days + ' day' + (days === 1 ? '' : 's') + ' away). It could lapse (cheaper) or be replaced by something higher. Re-check the live rate and your carrier\u2019s brokerage fee when you order.';
+    } else {
+      el.innerHTML = '<b>Heads up \u2014 this rate may be out of date.</b> The 10% default was a temporary Section 122 surcharge set to expire around <b>July 24, 2026</b>, which has now passed; the duty may have lapsed or changed. Verify the current US tariff on Japanese imports and update the duty field above before trusting this number.';
+    }
+  })();
 
   loadSets();
   applyQuery();
