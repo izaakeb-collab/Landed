@@ -82,7 +82,7 @@
   .qty-btn{flex:0 0 44px;border:1px solid var(--line-strong);background:var(--card);border-radius:10px;font-size:20px;line-height:1;color:var(--ink);cursor:pointer;font-family:var(--mono)}
   .qty-btn:hover{border-color:var(--ink-soft);background:var(--paper)}
   .qty-btn:active{background:var(--line)}
-  .qty-range{width:100%;margin:12px 0 2px;accent-color:var(--stamp);cursor:pointer}
+  .qty-range{width:100%;margin:12px 0 2px;accent-color:#9AA3B8;cursor:pointer}
   /* advanced (collapsible) */
   details.adv{margin:2px 0 6px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
   details.adv > summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
@@ -574,6 +574,14 @@
         var atBe = variablePerBox + fixedCosts/beQ;
         ctxt.innerHTML='Single boxes barely move the needle. Ship <b>'+beQ+' box'+(beQ>1?'es':'')+' together</b> and your per-box cost drops to about <b>'+usd(atBe)+'</b> — under the '+usd(usPrice)+' domestic price.';
       }
+    }
+
+    /* ---- slider color reflects the verdict at this quantity ---- */
+    var qr=$('qtyRange');
+    if(qr){
+      qr.style.accentColor = (priceJPY<=0 || usPrice<=0)
+        ? '#9AA3B8'
+        : (win ? 'var(--good)' : (near ? '#9AA3B8' : 'var(--bad)'));
     }
 
     /* ---- break-even chart ---- */
