@@ -71,6 +71,11 @@
   .explain .eg{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--ink-soft);margin-bottom:6px}
   .explain p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-soft)}
   .explain b{color:var(--ink);font-weight:600}
+  .be-wrap{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .be-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--ink-soft);margin-bottom:8px}
+  #beChart svg{display:block}
+  #beChart text{font-family:var(--mono)}
+  .be-empty{font-size:13px;color:var(--ink-soft);padding:14px 0;line-height:1.5}
   .v-sub b{color:var(--ink);font-weight:600}
 
   .stamp-box{display:flex;justify-content:center}
@@ -363,6 +368,11 @@
           <div class="ic">⤢</div>
           <p id="consolTxt">—</p>
         </div>
+
+        <div class="be-wrap">
+          <div class="be-title">Cost per box as you consolidate</div>
+          <div id="beChart"></div>
+        </div>
       </section>
     </main>
 
@@ -535,8 +545,82 @@
       }
     }
 
+    /* ---- break-even chart ---- */
+    drawBreakEven(fixedCosts, variablePerBox, usPrice, qty, (priceJPY>0 && usPrice>0));
+
     /* ---- mobile dock ---- */
     $('dockNum').textContent=usd(perBox);
+  }
+
+  /* ---------- break-even chart ---------- */
+  function drawBreakEven(fixed, varPer, dom, qty, hasPrices){
+    var host = document.getElementById('beChart'); if(!host) return;
+    if(!hasPrices || varPer<=0){
+      host.innerHTML = '<div class="be-empty">Enter a box price and a US price to see how your cost per box falls as you ship more boxes together.</div>';
+      return;
+    }
+    var W=480, H=232, padL=52, padR=16, padT=18, padB=32;
+    var plotW=W-padL-padR, plotH=H-padT-padB;
+
+    var breaks = varPer < dom;
+    var beQ = breaks ? Math.max(1, Math.ceil(fixed/(dom-varPer))) : Infinity;
+
+    var minQ=1, maxQ=Math.min(40, Math.max(10, qty+2, breaks ? beQ+4 : 12));
+
+    function perBox(n){ return varPer + fixed/n; }
+    function X(n){ return padL + (n-minQ)/(maxQ-minQ)*plotW; }
+    function Y(v){ return padT + (yHi-v)/(yHi-yLo)*plotH; }
+
+    var yHi=Math.max(perBox(minQ), dom), yLo=Math.min(perBox(maxQ), dom);
+    var pad=(yHi-yLo)*0.12 || (yHi*0.1) || 1;
+    yHi+=pad; yLo=Math.max(0, yLo-pad);
+
+    var INK='#15203B', SOFT='#5C6685', LINE='#CDD3E0', RED='#C8392B', GRN='#0E8A5F', BLU='#3B7BD4';
+
+    var d='', i, n;
+    for(i=0;i<=80;i++){ n=minQ+(maxQ-minQ)*i/80; d+=(i?'L':'M')+X(n).toFixed(1)+' '+Y(perBox(n)).toFixed(1)+' '; }
+
+    var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet">';
+
+    if(breaks && beQ<=maxQ){
+      var bx=X(beQ);
+      s+='<rect x="'+bx.toFixed(1)+'" y="'+padT+'" width="'+(padL+plotW-bx).toFixed(1)+'" height="'+plotH+'" fill="'+GRN+'" opacity="0.07"/>';
+      s+='<text x="'+((bx+padL+plotW)/2).toFixed(1)+'" y="'+(padT+12)+'" text-anchor="middle" font-size="10" fill="'+GRN+'">importing wins</text>';
+    } else if(!breaks){
+      s+='<text x="'+(padL+plotW)+'" y="'+(padT+12)+'" text-anchor="end" font-size="10" fill="'+SOFT+'">never dips below domestic</text>';
+    } else if(beQ>maxQ){
+      s+='<text x="'+(padL+plotW/2)+'" y="'+(padT+12)+'" text-anchor="middle" font-size="10" fill="'+SOFT+'">break-even near '+beQ+' boxes (beyond chart)</text>';
+    }
+
+    s+='<line x1="'+padL+'" y1="'+(padT+plotH)+'" x2="'+(padL+plotW)+'" y2="'+(padT+plotH)+'" stroke="'+LINE+'" stroke-width="1"/>';
+
+    var yd=Y(dom);
+    s+='<line x1="'+padL+'" y1="'+yd.toFixed(1)+'" x2="'+(padL+plotW)+'" y2="'+yd.toFixed(1)+'" stroke="'+RED+'" stroke-width="1.5" stroke-dasharray="5 4"/>';
+    s+='<text x="'+(padL+4)+'" y="'+(yd-6).toFixed(1)+'" font-size="11" fill="'+RED+'">buy in US \u00b7 $'+Math.round(dom).toLocaleString('en-US')+'/box</text>';
+
+    s+='<path d="'+d+'" fill="none" stroke="'+INK+'" stroke-width="2.2"/>';
+
+    if(breaks && beQ<=maxQ){
+      var bx2=X(beQ), by=Y(perBox(beQ));
+      s+='<line x1="'+bx2.toFixed(1)+'" y1="'+padT+'" x2="'+bx2.toFixed(1)+'" y2="'+(padT+plotH)+'" stroke="'+SOFT+'" stroke-width="1" stroke-dasharray="3 3"/>';
+      s+='<circle cx="'+bx2.toFixed(1)+'" cy="'+by.toFixed(1)+'" r="4" fill="'+GRN+'"/>';
+      s+='<text x="'+bx2.toFixed(1)+'" y="'+(padT+plotH+15)+'" text-anchor="middle" font-size="11" fill="'+INK+'">break-even '+beQ+'</text>';
+    }
+
+    if(qty>=minQ && qty<=maxQ){
+      var cx=X(qty), cy=Y(perBox(qty)), ly=Math.max(padT+10, cy-9);
+      s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="4.5" fill="'+BLU+'" stroke="#fff" stroke-width="1.5"/>';
+      s+='<text x="'+cx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle" font-size="11" fill="'+BLU+'">you: '+qty+'</text>';
+    }
+
+    s+='<text x="'+(padL-6)+'" y="'+(padT+4)+'" text-anchor="end" font-size="10" fill="'+SOFT+'">$'+Math.round(yHi).toLocaleString('en-US')+'</text>';
+    s+='<text x="'+(padL-6)+'" y="'+(padT+plotH)+'" text-anchor="end" font-size="10" fill="'+SOFT+'">$'+Math.round(yLo).toLocaleString('en-US')+'</text>';
+    s+='<text x="'+X(minQ).toFixed(1)+'" y="'+(padT+plotH+15)+'" text-anchor="middle" font-size="10" fill="'+SOFT+'">1</text>';
+    s+='<text x="'+X(maxQ).toFixed(1)+'" y="'+(padT+plotH+15)+'" text-anchor="middle" font-size="10" fill="'+SOFT+'">'+maxQ+'</text>';
+    s+='<text x="'+(padL+plotW/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="10" fill="'+SOFT+'">boxes per shipment</text>';
+
+    s+='</svg>';
+    host.innerHTML=s;
   }
 
   // wire all inputs
