@@ -3,7 +3,23 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Landed — Japanese sealed import cost</title>
+<title>LANDED — true cost to import Japanese sealed to the US</title>
+<meta name="description" content="Free landed-cost calculator for importing Japanese sealed trading-card booster boxes to the US. See your real cost per box after exchange rate, proxy fees, shipping, tariffs, and customs — and whether importing actually beats buying domestic.">
+<link rel="canonical" href="https://landed-tcg.netlify.app/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://landed-tcg.netlify.app/">
+<meta property="og:title" content="LANDED — true cost to import Japanese sealed">
+<meta property="og:description" content="See your real cost per box after FX, proxy fees, shipping, tariffs & customs — and whether importing beats buying in the US. Free, no signup.">
+<meta property="og:image" content="https://landed-tcg.netlify.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LANDED — true cost to import Japanese sealed">
+<meta name="twitter:description" content="See your real cost per box after FX, proxy fees, shipping, tariffs & customs — and whether importing beats buying in the US.">
+<meta name="twitter:image" content="https://landed-tcg.netlify.app/og.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23C8392B'/><text x='16' y='24' font-family='Georgia,serif' font-size='21' font-weight='700' fill='%23F5F6F8' text-anchor='middle'>L</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -94,6 +110,21 @@
   .adv-body{padding:2px 14px 12px}
   .adv-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:2px 0 14px}
   .adv-body .group{margin-top:6px}
+  /* share row */
+  .share-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .share-row .share-btn{margin-top:0}
+  /* resale / profit card */
+  .profit{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card)}
+  .profit.pos{border-color:#BFE3D2;background:#E6F4EE}
+  .profit.neg{border-color:#EBC7C2;background:#FBEBE9}
+  .profit-head{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:11px;color:var(--ink-soft);margin-bottom:10px}
+  .profit-grid{display:flex;gap:20px;flex-wrap:wrap}
+  .profit-grid > div{display:flex;flex-direction:column;gap:2px}
+  .profit .pl{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--ink)}
+  .profit.pos .pl.key{color:var(--good)}
+  .profit.neg .pl.key{color:var(--bad)}
+  .profit .ps{font-size:11px;color:var(--ink-soft)}
+  .profit-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin-top:10px}
   .v-sub b{color:var(--ink);font-weight:600}
 
   .stamp-box{display:flex;justify-content:center}
@@ -259,7 +290,10 @@
           <div class="eyebrow">Your real cost per box, landed</div>
           <div class="v-num" id="perBox">$—</div>
           <div class="v-sub" id="vSub">Enter a box price to compare importing against buying domestic.</div>
-          <button class="share-btn" id="shareBtn" type="button"><span>Copy shareable link</span></button>
+          <div class="share-row">
+            <button class="share-btn" id="shareBtn" type="button"><span>Copy shareable link</span></button>
+            <button class="share-btn" id="summaryBtn" type="button"><span>Copy summary</span></button>
+          </div>
         </div>
         <div class="stamp-box">
           <div class="stamp" id="stamp">
@@ -373,6 +407,23 @@
             <div class="desc" id="ebayNote" style="margin-top:4px"></div>
           </div>
         </div>
+
+        <details class="adv">
+          <summary><span>Resale / profit</span><span class="adv-tag">optional</span></summary>
+          <div class="adv-body">
+            <p class="adv-note">Flipping these instead of keeping them? Enter your expected sell price to see profit per box — often close to the eBay figure above, minus selling fees.</p>
+            <div class="field">
+              <label for="resale">Your sell price (per box)</label>
+              <div class="ctrl"><span class="pre">$</span><input id="resale" type="number" min="0" step="1" value="0"></div>
+              <div class="desc">What you expect to sell each box for. Leave at 0 to hide the profit view.</div>
+            </div>
+            <div class="field">
+              <label for="sellFee">Selling fees</label>
+              <div class="ctrl"><input id="sellFee" type="number" min="0" step="0.5" value="13"><span class="post">%</span></div>
+              <div class="desc">Marketplace + payment fees taken out of your sale (eBay runs ~13%).</div>
+            </div>
+          </div>
+        </details>
       </section>
 
       <!-- RESULTS -->
@@ -403,6 +454,16 @@
         <div class="be-wrap">
           <div class="be-title">Cost per box as you consolidate</div>
           <div id="beChart"></div>
+        </div>
+
+        <div class="profit" id="profitCard" hidden>
+          <div class="profit-head">Resale outlook</div>
+          <div class="profit-grid">
+            <div><span class="pl key" id="profBox">$—</span><span class="ps">net profit / box</span></div>
+            <div><span class="pl" id="profTotal">$—</span><span class="ps" id="profTotalSub">total</span></div>
+            <div><span class="pl" id="profRoi">—%</span><span class="ps">return on cost</span></div>
+          </div>
+          <div class="profit-note" id="profNote"></div>
         </div>
       </section>
     </main>
@@ -453,6 +514,8 @@
   }
   $('rExport').addEventListener('click',function(){setRoute('export');});
   $('rProxy').addEventListener('click',function(){setRoute('proxy');});
+
+  var lastSummary = '';
 
   function compute(){
     var fx = num('fx') || 1;
@@ -587,6 +650,50 @@
     /* ---- break-even chart ---- */
     drawBreakEven(fixedCosts, variablePerBox, usPrice, qty, (priceJPY>0 && usPrice>0));
 
+    /* ---- resale / profit ---- */
+    var resale = num('resale');
+    var sellFee = Math.max(0, num('sellFee'))/100;
+    var card = $('profitCard');
+    var profitBox = 0, profitTotal = 0, roi = 0;
+    if(resale>0 && priceJPY>0){
+      profitBox = resale*(1-sellFee) - perBox;
+      profitTotal = profitBox * qty;
+      roi = perBox>0 ? (profitBox/perBox*100) : 0;
+      if(card){
+        card.hidden = false;
+        card.classList.toggle('pos', profitBox>=0);
+        card.classList.toggle('neg', profitBox<0);
+        $('profBox').textContent = (profitBox<0?'\u2212':'') + usd(Math.abs(profitBox));
+        $('profTotal').textContent = (profitTotal<0?'\u2212':'') + usd(Math.abs(profitTotal));
+        $('profTotalSub').textContent = 'total on '+qty+' box'+(qty>1?'es':'');
+        $('profRoi').textContent = (roi<0?'\u2212':'') + Math.abs(roi).toFixed(0) + '%';
+        $('profNote').innerHTML = 'Sell '+usd(resale)+'/box'+(sellFee>0?' \u2212 '+(sellFee*100).toFixed(sellFee*100%1?1:0)+'% fees ('+usd(resale*sellFee)+')':'')+' \u2212 '+usd(perBox)+' landed = <b>'+(profitBox>=0?usd(profitBox)+' profit':usd(Math.abs(profitBox))+' loss')+'</b> per box.';
+      }
+    } else if(card){
+      card.hidden = true;
+      card.classList.remove('pos','neg');
+    }
+
+    /* ---- shareable plain-English summary ---- */
+    var bw = qty>1?'boxes':'box', sum;
+    if(priceJPY<=0 || usPrice<=0){
+      sum = 'LANDED \u2014 a free calculator for the true cost of importing Japanese sealed boxes to the US.';
+    } else if(near){
+      sum = 'At '+qty+' '+bw+', importing lands at '+usd(perBox)+'/box \u2014 about even with buying in the US ('+usd(usPrice)+').';
+    } else if(win){
+      sum = 'At '+qty+' '+bw+', importing lands at '+usd(perBox)+'/box \u2014 '+usd(savePerBox)+'/box ('+savePct.toFixed(0)+'%) cheaper than the US ('+usd(usPrice)+').';
+    } else {
+      sum = 'At '+qty+' '+bw+', importing lands at '+usd(perBox)+'/box \u2014 '+usd(Math.abs(savePerBox))+'/box more than buying in the US ('+usd(usPrice)+').';
+    }
+    if(priceJPY>0 && usPrice>0){
+      if(variablePerBox >= usPrice){ sum += ' Doesn\u2019t beat domestic at any quantity at this rate.'; }
+      else { var beq2=Math.max(1,Math.ceil(fixedCosts/(usPrice-variablePerBox))); sum += ' Break-even at '+beq2+' '+(beq2>1?'boxes':'box')+' per shipment.'; }
+    }
+    if(resale>0 && priceJPY>0){
+      sum += ' At a '+usd(resale)+' sell price'+(sellFee>0?' (after '+(sellFee*100).toFixed(0)+'% fees)':'')+', that\u2019s '+(profitBox>=0?usd(profitBox)+' profit':usd(Math.abs(profitBox))+' loss')+'/box ('+(roi<0?'\u2212':'')+Math.abs(roi).toFixed(0)+'% ROI).';
+    }
+    lastSummary = sum;
+
     /* ---- mobile dock ---- */
     $('dockNum').textContent=usd(perBox);
   }
@@ -663,7 +770,7 @@
   }
 
   // wire all inputs
-  ['priceJPY','qty','fx','proxyFeeJPY','jpShipJPY','shipBase','shipPer','duty','proc','usPrice']
+  ['priceJPY','qty','fx','proxyFeeJPY','jpShipJPY','shipBase','shipPer','duty','proc','usPrice','resale','sellFee']
     .forEach(function(id){ $(id).addEventListener('input', compute); });
 
   /* ---------- quantity stepper + slider ---------- */
@@ -684,7 +791,7 @@
   })();
 
   /* ---------- shareable URL ---------- */
-  var PARAMS = {p:'priceJPY',q:'qty',fx:'fx',pf:'proxyFeeJPY',js:'jpShipJPY',sb:'shipBase',sp:'shipPer',d:'duty',pc:'proc',us:'usPrice'};
+  var PARAMS = {p:'priceJPY',q:'qty',fx:'fx',pf:'proxyFeeJPY',js:'jpShipJPY',sb:'shipBase',sp:'shipPer',d:'duty',pc:'proc',us:'usPrice',rs:'resale',sf:'sellFee'};
   var userSetFx = false;
 
   function applyQuery(){
@@ -718,6 +825,19 @@
       if(navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(url).then(flash, function(){ window.prompt('Copy this link:', url); });
       } else { window.prompt('Copy this link:', url); }
+    });
+  }
+
+  var summaryBtn = $('summaryBtn');
+  if(summaryBtn){
+    summaryBtn.addEventListener('click', function(){
+      var span = summaryBtn.querySelector('span');
+      var text = lastSummary + '\n\nRun your own numbers: ' + buildShareUrl();
+      var flash = function(){ var t=span.textContent; span.textContent='Copied to clipboard'; summaryBtn.classList.add('ok');
+        setTimeout(function(){ span.textContent=t; summaryBtn.classList.remove('ok'); }, 1800); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(flash, function(){ window.prompt('Copy this summary:', text); });
+      } else { window.prompt('Copy this summary:', text); }
     });
   }
 
