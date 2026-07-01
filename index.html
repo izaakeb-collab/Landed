@@ -76,6 +76,24 @@
   #beChart svg{display:block}
   #beChart text{font-family:var(--mono)}
   .be-empty{font-size:13px;color:var(--ink-soft);padding:14px 0;line-height:1.5}
+  /* quantity stepper + slider */
+  .qty-row{display:flex;align-items:stretch;gap:8px}
+  .qty-row .qty-ctrl{flex:1;min-width:0}
+  .qty-btn{flex:0 0 44px;border:1px solid var(--line-strong);background:var(--card);border-radius:10px;font-size:20px;line-height:1;color:var(--ink);cursor:pointer;font-family:var(--mono)}
+  .qty-btn:hover{border-color:var(--ink-soft);background:var(--paper)}
+  .qty-btn:active{background:var(--line)}
+  .qty-range{width:100%;margin:12px 0 2px;accent-color:var(--stamp);cursor:pointer}
+  /* advanced (collapsible) */
+  details.adv{margin:2px 0 6px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+  details.adv > summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
+  details.adv > summary::-webkit-details-marker{display:none}
+  details.adv > summary > span:first-child{flex:1}
+  details.adv .adv-tag{font-size:10px;color:var(--ink-soft);text-transform:none;letter-spacing:0}
+  details.adv > summary::after{content:"\25B8";color:var(--ink-soft);font-size:11px;transition:transform .15s}
+  details.adv[open] > summary::after{transform:rotate(90deg)}
+  .adv-body{padding:2px 14px 12px}
+  .adv-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:2px 0 14px}
+  .adv-body .group{margin-top:6px}
   .v-sub b{color:var(--ink);font-weight:600}
 
   .stamp-box{display:flex;justify-content:center}
@@ -263,7 +281,7 @@
       <!-- INPUTS -->
       <section class="panel">
         <h2>The shipment</h2>
-        <p class="hint">All defaults reflect mid-2026 norms. Change anything — the verdict updates live.</p>
+        <p class="hint">Loaded with a sample scenario — change the price, quantity, or US price and everything updates live.</p>
 
         <div class="group">
           <div class="group-label">Product</div>
@@ -279,16 +297,26 @@
           </div>
           <div class="field">
             <label for="qty">How many boxes (one shipment)</label>
-            <div class="ctrl"><input id="qty" type="number" min="1" step="1" value="1"><span class="post">boxes</span></div>
-            <div class="desc">Consolidating boxes into one parcel is where the savings come from.</div>
-          </div>
-          <div class="field">
-            <label for="fx">Exchange rate</label>
-            <div class="ctrl"><span class="pre">¥/$</span><input id="fx" type="number" min="1" step="0.5" value="150"><span class="post">per USD</span></div>
-            <div class="desc">Auto-filled with the live rate; override if your seller or card is quoted differently.</div>
-            <div class="fxlive" id="fxLive" hidden></div>
+            <div class="qty-row">
+              <button type="button" class="qty-btn" id="qtyMinus" aria-label="One fewer box">&minus;</button>
+              <div class="ctrl qty-ctrl"><input id="qty" type="number" min="1" step="1" value="1"><span class="post">boxes</span></div>
+              <button type="button" class="qty-btn" id="qtyPlus" aria-label="One more box">+</button>
+            </div>
+            <input id="qtyRange" class="qty-range" type="range" min="1" max="20" step="1" value="1">
+            <div class="desc">Drag the slider to watch your cost per box drop as you consolidate — the chart updates live. This is where the savings come from.</div>
           </div>
         </div>
+
+        <details class="adv">
+          <summary><span>Adjust exchange rate, shipping, duty &amp; fees</span><span class="adv-tag">optional</span></summary>
+          <div class="adv-body">
+            <p class="adv-note">Pre-filled with typical mid-2026 values — most people can leave these alone. Expand only if you know your own numbers.</p>
+            <div class="field">
+              <label for="fx">Exchange rate</label>
+              <div class="ctrl"><span class="pre">¥/$</span><input id="fx" type="number" min="1" step="0.5" value="150"><span class="post">per USD</span></div>
+              <div class="desc">Auto-filled with the live rate; override if your seller or card is quoted differently.</div>
+              <div class="fxlive" id="fxLive" hidden></div>
+            </div>
 
         <div class="group">
           <div class="group-label">Sourcing route</div>
@@ -332,6 +360,9 @@
             <div class="ctrl"><span class="pre">$</span><input id="proc" type="number" min="0" step="1" value="10"></div>
           </div>
         </div>
+
+          </div>
+        </details>
 
         <div class="group">
           <div class="group-label">Compare against</div>
@@ -627,6 +658,23 @@
   ['priceJPY','qty','fx','proxyFeeJPY','jpShipJPY','shipBase','shipPer','duty','proc','usPrice']
     .forEach(function(id){ $(id).addEventListener('input', compute); });
 
+  /* ---------- quantity stepper + slider ---------- */
+  (function(){
+    var q=$('qty'), range=$('qtyRange'), minus=$('qtyMinus'), plus=$('qtyPlus');
+    function rangeMax(){ return range ? parseInt(range.max,10) : 20; }
+    function setQty(n){
+      n=Math.max(1, Math.floor(n||1));
+      q.value=n;
+      if(range) range.value=Math.min(rangeMax(), n);
+      compute();
+    }
+    if(range){ range.addEventListener('input', function(){ setQty(parseInt(this.value,10)); }); }
+    // typing in the number box: the global listener recomputes; here we just keep the slider in sync
+    q.addEventListener('input', function(){ if(range){ range.value=Math.min(rangeMax(), Math.max(1,Math.floor(num('qty')||1))); } });
+    if(minus) minus.addEventListener('click', function(){ setQty((parseInt(q.value,10)||1)-1); });
+    if(plus)  plus.addEventListener('click', function(){ setQty((parseInt(q.value,10)||1)+1); });
+  })();
+
   /* ---------- shareable URL ---------- */
   var PARAMS = {p:'priceJPY',q:'qty',fx:'fx',pf:'proxyFeeJPY',js:'jpShipJPY',sb:'shipBase',sp:'shipPer',d:'duty',pc:'proc',us:'usPrice'};
   var userSetFx = false;
@@ -797,6 +845,7 @@
 
   loadSets();
   applyQuery();
+  (function(){ var r=$('qtyRange'); if(r){ r.value=Math.min(parseInt(r.max,10), Math.max(1,Math.floor(num('qty')||1))); } })();
   compute();
   fetchLiveFx();
 })();
